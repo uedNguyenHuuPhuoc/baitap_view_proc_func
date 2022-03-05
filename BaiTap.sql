@@ -176,3 +176,104 @@ return
 
 select * from F_findCustomerByMaHK('MKH01')
 
+
+-- Tao Le
+
+-- xem tất cả đơn đặt hàng của KH có dia chi  là Da nang
+create view all_ORDER as select * from ORDERS where maKH in (select maKH from CUSTOMER where diachi like 'Da Nang')
+-- xem tất cả  KH chưa từng đặt hàng
+go
+create view not_order as select * from CUSTOMER where maKH not in (select maKH from ORDERS)
+go
+select * from not_order
+
+
+--PROC
+-- Tạo Procedure để xóa thông tin của một khách hàng nào đó với Mã khách hàng là một tham số truyền vào
+go
+create proc delete_Customer_By_MaKH (@maKH varchar(10))
+as
+begin
+	if not exists (select maKH from CUSTOMER where maKH=@maKH)
+		begin
+			print N'Không tồn tại mã khách hàng '+@maKH +N' trong bảng CUSTOMER'
+			return
+		end
+	delete from CUSTOMER where maKH=@maKH
+end
+
+exec delete_Customer_By_MaKH 'KH000'
+
+select * from CUSTOMER	
+go
+
+--	Tạo Procedure dùng để bổ sung thêm bản ghi mới vào bảng ORDERS với yêu cầu phải 
+--	thực hiện kiểm tra tính hợp lệ của dữ liệu được bổ sung, với nguyên tắc là không được trùng khóa chính
+--	và đảm bảo toàn vẹn dữ liệu tham chiếu đến các bảng có liên quan
+
+alter proc add_order (
+	@maDH varchar(10),
+	@ngaydat date,
+	@trangthai varchar(10),
+	@tongtien money,
+	@maKH varchar(10),
+	@maTT varchar(10)
+	)
+as
+	begin
+		if exists (select maDH from ORDERS where maDH=@maDH)
+		   begin
+				print N'Đã tồn tại khóa chính là: '+@maDH + N' trong bảng ORDERS'
+				return
+		   end
+		if not exists (select maKH from CUSTOMER where maKH=@maKH)
+		   begin
+				print N'Chưa tồn tại khóa chính là: '+@maKH + N' trong bảng CUSTOMER'
+				return
+		   end
+		if not exists (select maTT from PAYMENT where maTT=@maTT)
+		   begin
+				print N'Chưa tồn tại khóa chính là: '+@maTT + N' trong bảng PAYMENT'
+				return
+		   end
+		insert into ORDERS values(
+								@maDH,
+								@ngaydat,
+								@trangthai,
+								@tongtien,
+								@maKH,
+								@maTT
+								)
+	end
+	add_order 'MDH05','2020/10/11','','','',''
+	go
+
+-- FUNCTION
+-- Tạo function dùng để tìm thông tin của sản phẩm được mua nhiều nhất
+select * from ORDER_DETAILS
+select * from ORDERS
+go
+create function max_SP_ordered()
+returns table
+as return(
+select * from PRODUCT where maSP in (select top 1 maSP from ORDER_DETAILS group by maSP order by sum(soluongmua) desc)
+)
+select * from dbo.max_SP_ordered()
+
+-- Tạo function để tìm thông tin chi tiết của các đơn hàng theo mã khách hàng
+go
+
+create function search_order_details_by_maKH ( @maKH varchar(10))
+returns table as
+return (
+	select dh.maDH,dh.maKH,ct.maCTSP,ct.soluongmua,ct.gia,ct.thanhtien,ct.maSP from ORDERS dh left join 
+	ORDER_DETAILS ct on ct.maDH like dh.maDH where dh.maKH like @maKH
+)
+go
+select * from search_order_details_by_maKH('KH001')
+
+
+
+
+
+
