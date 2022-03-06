@@ -112,7 +112,6 @@ begin
 end
 
 exec P_AddProduct @maSP = 'SP08', @tenSP = 'Iphone 13', @mota = 'khong', @giaSP = '9000000', @soluongSP = 10;
-exec P_AddProduct @maSP = 'SP02', @tenSP = 'Iphone 13', @mota = 'khong', @giaSP = '9000000', @soluongSP = 10;
 exec P_AddProduct @maSP = 'SP04', @tenSP = 'BlackBerry Bold', @mota = 'khong', @giaSP = '500000', @soluongSP = 10;
 exec P_AddProduct @maSP = 'SP05', @tenSP = 'BlackBerry Classic', @mota = 'khong', @giaSP = '9000000', @soluongSP = 10;
 
