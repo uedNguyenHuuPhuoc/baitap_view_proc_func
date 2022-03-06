@@ -1,5 +1,7 @@
 ﻿create database QLMH;
+go
 use QLMH;
+go
 
 create table CUSTOMER(
 	maKH varchar(10) primary key,
@@ -76,15 +78,20 @@ INSERT INTO ORDER_DETAILS VALUES
 
 --VIEW
 -- xem khach hang co trang thai don hang la 'Cho xu ly'
+go
 create view V_Customer_Processing
 as
-select customer.* from CUSTOMER
+select customer.*, ORDERS.trangthai from CUSTOMER
 inner join ORDERS on CUSTOMER.maKH = ORDERS.maKH
 where ORDERS.trangthai = 'Cho Xu Ly'
+
+--drop view V_Customer_Processing
 
 select * from V_Customer_Processing
 
 --PROCEDURE
+--proc them san pham
+go
 create proc P_AddProduct(
 	@maSP varchar(10),
 	@tenSP varchar(100),
@@ -105,8 +112,13 @@ begin
 end
 
 exec P_AddProduct @maSP = 'SP08', @tenSP = 'Iphone 13', @mota = 'khong', @giaSP = '9000000', @soluongSP = 10;
+exec P_AddProduct @maSP = 'SP02', @tenSP = 'Iphone 13', @mota = 'khong', @giaSP = '9000000', @soluongSP = 10;
+exec P_AddProduct @maSP = 'SP04', @tenSP = 'BlackBerry Bold', @mota = 'khong', @giaSP = '500000', @soluongSP = 10;
+exec P_AddProduct @maSP = 'SP05', @tenSP = 'BlackBerry Classic', @mota = 'khong', @giaSP = '9000000', @soluongSP = 10;
+
 select * from PRODUCT
 
+go
 create proc P_UpdateCustomer(
 	@maKH varchar(10),
 	@name nvarchar(50),
@@ -128,9 +140,12 @@ begin
 end
 
 exec P_UpdateCustomer @maKH = 'MKH01', @name = 'Nguyen Duong Quy',@email = 'email@gmail.com', @phone = '0912312312', @adress = 'Quang Tri'
+exec P_UpdateCustomer @maKH = 'MKH02', @name = 'Nguyen Huu Phuoc',@email = 'phuoc@edu.udn.vn', @phone = '0912312312', @adress = 'Quang Nam'
+
 select * from CUSTOMER
 
 -- them 1 oder moi, kiem tra tinh toan ven cua du lieu
+go
 create proc P_AddOders(
 	@maDH varchar(10),
 	@ngaydat date,
@@ -160,6 +175,7 @@ begin
 	values(@maDH, @ngaydat, @trangthai, @tongtien, @maKH, @maTT)
 end
 exec P_AddOders @maDH = 'MDH04', @ngaydat = '2/3/2021', @trangthai = 'Cho Xu Ly', @tongtien = 100000, @maKH = 'MKH01', @maTT = 'MaTT01'
+
 select * from ORDERS
 select * from CUSTOMER
 select * from PAYMENT
@@ -167,6 +183,7 @@ select * from PAYMENT
 
 --FUNCTION
 --ham tim khach hang = maKH
+go
 create function F_findCustomerByMaHK(@MaKH varchar(10))
 returns table
 as
