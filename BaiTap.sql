@@ -1,5 +1,7 @@
 ﻿create database QLMH;
+go
 use QLMH;
+go
 
 create table CUSTOMER(
 	maKH varchar(10) primary key,
@@ -76,15 +78,20 @@ INSERT INTO ORDER_DETAILS VALUES
 
 --VIEW
 -- xem khach hang co trang thai don hang la 'Cho xu ly'
+go
 create view V_Customer_Processing
 as
-select customer.* from CUSTOMER
+select customer.*, ORDERS.trangthai from CUSTOMER
 inner join ORDERS on CUSTOMER.maKH = ORDERS.maKH
 where ORDERS.trangthai = 'Cho Xu Ly'
+
+--drop view V_Customer_Processing
 
 select * from V_Customer_Processing
 
 --PROCEDURE
+--proc them san pham
+go
 create proc P_AddProduct(
 	@maSP varchar(10),
 	@tenSP varchar(100),
@@ -105,8 +112,12 @@ begin
 end
 
 exec P_AddProduct @maSP = 'SP08', @tenSP = 'Iphone 13', @mota = 'khong', @giaSP = '9000000', @soluongSP = 10;
+exec P_AddProduct @maSP = 'SP04', @tenSP = 'BlackBerry Bold', @mota = 'khong', @giaSP = '500000', @soluongSP = 10;
+exec P_AddProduct @maSP = 'SP05', @tenSP = 'BlackBerry Classic', @mota = 'khong', @giaSP = '9000000', @soluongSP = 10;
+
 select * from PRODUCT
 
+go
 create proc P_UpdateCustomer(
 	@maKH varchar(10),
 	@name nvarchar(50),
@@ -128,9 +139,12 @@ begin
 end
 
 exec P_UpdateCustomer @maKH = 'MKH01', @name = 'Nguyen Duong Quy',@email = 'email@gmail.com', @phone = '0912312312', @adress = 'Quang Tri'
+exec P_UpdateCustomer @maKH = 'MKH02', @name = 'Nguyen Huu Phuoc',@email = 'phuoc@edu.udn.vn', @phone = '0912312312', @adress = 'Quang Nam'
+
 select * from CUSTOMER
 
 -- them 1 oder moi, kiem tra tinh toan ven cua du lieu
+go
 create proc P_AddOders(
 	@maDH varchar(10),
 	@ngaydat date,
@@ -160,6 +174,7 @@ begin
 	values(@maDH, @ngaydat, @trangthai, @tongtien, @maKH, @maTT)
 end
 exec P_AddOders @maDH = 'MDH04', @ngaydat = '2/3/2021', @trangthai = 'Cho Xu Ly', @tongtien = 100000, @maKH = 'MKH01', @maTT = 'MaTT01'
+
 select * from ORDERS
 select * from CUSTOMER
 select * from PAYMENT
@@ -167,6 +182,7 @@ select * from PAYMENT
 
 --FUNCTION
 --ham tim khach hang = maKH
+go
 create function F_findCustomerByMaHK(@MaKH varchar(10))
 returns table
 as
@@ -175,6 +191,40 @@ return
 	where maKH = @MaKH;
 
 select * from F_findCustomerByMaHK('MKH01')
+
+
+
+[Hôm qua 11:03] Nguyen Phu Quy
+-- xem khach hang thanh toán bằng "MOMO"create view V_Customer_Processing2
+as
+select customer.* from CUSTOMER
+join ORDERS on CUSTOMER.maKH = ORDERS.maKH join PAYMENT on ORDERS.maTT=PAYMENT.maTT
+where PAYMENT.tenPTTT = 'MOMO'select * from V_Customer_Processing2
+--PROCEDURE
+--xóa thông tin của một khách hàng nào đó
+--với tên địa chỉ được truyền vào như một tham số của Stored Procedure
+CREATE PROCEDURE PROCEDURE_1 @diachi VARCHAR (50)
+AS
+BEGIN
+	DELETE FROM CUSTOMER
+	WHERE diachi=@diachi
+END
+GOinsert into CUSTOMER values
+('MKH05','Nguyen Van Dung1', 'dung2@gmail.com','0845123456','Ngu Hanh Son')PROCEDURE_1 @diachi= 'Ngu Hanh Son'select* from CUSTOMER
+
+[Hôm qua 11:03] Nguyen Phu Quy
+----Đếm tổng tiền với tên thanh toán là "MOMO"
+alter FUNCTION func1()
+RETURNS int
+AS
+BEGIN
+	DECLARE @tong int
+	SELECT @tong = SUM(tongtien)
+	FROM ORDERS
+	WHERE maTT = (SELECT maTT FROM PAYMENT WHERE tenPTTT = 'MOMO')
+	RETURN @tong
+END
+GOSELECT dbo.func1()
 
 
 -- Tao Le
@@ -210,6 +260,7 @@ go
 --	Tạo Procedure dùng để bổ sung thêm bản ghi mới vào bảng ORDERS với yêu cầu phải 
 --	thực hiện kiểm tra tính hợp lệ của dữ liệu được bổ sung, với nguyên tắc là không được trùng khóa chính
 --	và đảm bảo toàn vẹn dữ liệu tham chiếu đến các bảng có liên quan
+
 
 alter proc add_order (
 	@maDH varchar(10),
@@ -248,6 +299,7 @@ as
 	add_order 'MDH05','2020/10/11','','','',''
 	go
 
+
 -- FUNCTION
 -- Tạo function dùng để tìm thông tin của sản phẩm được mua nhiều nhất
 select * from ORDER_DETAILS
@@ -271,9 +323,6 @@ return (
 )
 go
 select * from search_order_details_by_maKH('KH001')
-
-
-
 
 
 
