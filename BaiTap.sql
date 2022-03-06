@@ -176,3 +176,37 @@ return
 
 select * from F_findCustomerByMaHK('MKH01')
 
+
+[Hôm qua 11:03] Nguyen Phu Quy
+-- xem khach hang thanh toán bằng "MOMO"create view V_Customer_Processing2
+as
+select customer.* from CUSTOMER
+join ORDERS on CUSTOMER.maKH = ORDERS.maKH join PAYMENT on ORDERS.maTT=PAYMENT.maTT
+where PAYMENT.tenPTTT = 'MOMO'select * from V_Customer_Processing2
+--PROCEDURE
+--xóa thông tin của một khách hàng nào đó
+--với tên địa chỉ được truyền vào như một tham số của Stored Procedure
+CREATE PROCEDURE PROCEDURE_1 @diachi VARCHAR (50)
+AS
+BEGIN
+DELETE FROM CUSTOMER
+WHERE diachi=@diachi
+END
+GOinsert into CUSTOMER values
+('MKH05','Nguyen Van Dung1', 'dung2@gmail.com','0845123456','Ngu Hanh Son')PROCEDURE_1 @diachi= 'Ngu Hanh Son'select* from CUSTOMER
+
+[Hôm qua 11:03] Nguyen Phu Quy
+----Đếm tổng tiền với tên thanh toán là "MOMO"
+alter FUNCTION func1()
+RETURNS int
+AS
+BEGIN
+DECLARE @tong int
+SELECT @tong = SUM(tongtien)
+FROM ORDERS
+WHERE maTT = (SELECT maTT FROM PAYMENT WHERE tenPTTT = 'MOMO')
+RETURN @tong
+END
+GOSELECT dbo.func1()
+
+
