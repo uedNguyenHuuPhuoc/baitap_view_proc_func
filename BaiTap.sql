@@ -193,6 +193,7 @@ return
 select * from F_findCustomerByMaHK('MKH01')
 
 
+
 [Hôm qua 11:03] Nguyen Phu Quy
 -- xem khach hang thanh toán bằng "MOMO"create view V_Customer_Processing2
 as
@@ -225,7 +226,7 @@ BEGIN
 END
 GOSELECT dbo.func1()
 
-<<<<<<< patch-1
+
 -- Tao Le
 
 -- xem tất cả đơn đặt hàng của KH có dia chi  là Da nang
@@ -261,6 +262,44 @@ go
 --	và đảm bảo toàn vẹn dữ liệu tham chiếu đến các bảng có liên quan
 
 
+alter proc add_order (
+	@maDH varchar(10),
+	@ngaydat date,
+	@trangthai varchar(10),
+	@tongtien money,
+	@maKH varchar(10),
+	@maTT varchar(10)
+	)
+as
+	begin
+		if exists (select maDH from ORDERS where maDH=@maDH)
+		   begin
+				print N'Đã tồn tại khóa chính là: '+@maDH + N' trong bảng ORDERS'
+				return
+		   end
+		if not exists (select maKH from CUSTOMER where maKH=@maKH)
+		   begin
+				print N'Chưa tồn tại khóa chính là: '+@maKH + N' trong bảng CUSTOMER'
+				return
+		   end
+		if not exists (select maTT from PAYMENT where maTT=@maTT)
+		   begin
+				print N'Chưa tồn tại khóa chính là: '+@maTT + N' trong bảng PAYMENT'
+				return
+		   end
+		insert into ORDERS values(
+								@maDH,
+								@ngaydat,
+								@trangthai,
+								@tongtien,
+								@maKH,
+								@maTT
+								)
+	end
+	add_order 'MDH05','2020/10/11','','','',''
+	go
+
+
 -- FUNCTION
 -- Tạo function dùng để tìm thông tin của sản phẩm được mua nhiều nhất
 select * from ORDER_DETAILS
@@ -284,5 +323,6 @@ return (
 )
 go
 select * from search_order_details_by_maKH('KH001')
+
 
 
