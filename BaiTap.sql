@@ -322,4 +322,70 @@ go
 select * from search_order_details_by_maKH('KH001')
 
 
+--Nguyen Huu Phuoc
+
+--Tao trigger update order detail, dien thong tin update vao bang order_details_log
+create table ORDER_DETAILS_LOG (
+	changed_on datetime,
+	act nvarchar(255),
+	maCTSP varchar(10),
+	detail nvarchar(255)
+)
+
+go
+create trigger trigger_update_order_detail 
+on ORDER_DETAILS for update
+as
+begin
+	declare @detail nvarchar(255) = N'updated ', 
+			@maCTSP varchar(10) = (select d.maCTSP from deleted d)
+	if update (maCTSP)
+		begin
+			set @detail +=	N'maCTSP: ' + (select convert(nvarchar(255), d.maCTSP) from deleted d) + 
+							N' --> '	+ (select convert(nvarchar(255), i.maCTSP) from inserted i) + N', '
+		end
+	if update (soluongmua)
+		begin
+			set @detail +=	N'soluongmua: ' + (select convert(nvarchar(255), d.soluongmua) from deleted d) + 
+							N' --> '		+ (select convert(nvarchar(255), i.soluongmua) from inserted i) + N', '
+		end
+	if update (gia)
+		begin
+			set @detail +=	N'gia: ' + (select convert(nvarchar(255), d.gia) from deleted d) + 
+							N' --> ' + (select convert(nvarchar(255), i.gia) from inserted i) + N', '
+		end
+	if update (thanhtien)
+		begin
+			set @detail +=	N'thanhtien: '	+ (select convert(nvarchar(255), d.thanhtien) from deleted d) + 
+							N' --> '		+ (select convert(nvarchar(255), i.thanhtien) from inserted i) + N', '
+		end
+	if update (maDH)
+		begin
+			set @detail +=	N'maDH: '	+ (select convert(nvarchar(255), d.maDH) from deleted d) + 
+							N' --> '	+ (select convert(nvarchar(255), i.maDH) from inserted i) + N', '
+		end
+	if update (maSP)
+		begin
+			set @detail +=	N'maSP: '	+ (select convert(nvarchar(255), d.maSP) from deleted d) + 
+							N' --> '	+ (select convert(nvarchar(255), i.maSP) from inserted i) + N', '		
+		end
+	set @detail = (select substring(@detail, 1, len(@detail) - 1))
+
+	insert into ORDER_DETAILS_LOG
+	(changed_on, act, maCTSP, detail)
+	values
+	(getdate(), N'update', @maCTSP, @detail)
+
+	print @detail
+end
+
+select * from ORDER_DETAILS
+
+update ORDER_DETAILS
+set gia = 10000, soluongmua = 5
+where maCTSP = 'CTSP01'
+
+select * from ORDER_DETAILS_LOG
+
+delete from ORDER_DETAILS_LOG
 
